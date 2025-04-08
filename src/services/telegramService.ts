@@ -45,7 +45,7 @@ function initBot() {
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id
     const telegramId = msg.from?.id.toString() || ""
-
+    console.log(telegramId)
     try {
       const user = await findUser(telegramId)
       if (!user) {

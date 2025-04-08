@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 import User from './User';
+
 interface ExpenseAttributes {
   id: number;
   user_id: number;
@@ -57,7 +58,7 @@ Expense.init(
   {
     sequelize,
     tableName: 'expenses',
-    timestamps: true,
+    timestamps: false,
   }
 );
 
