@@ -29,17 +29,28 @@ app.get('/', (req, res) => {
 // Start the server
 async function startServer() {
   try {
-    // Sync all models with database
+    // Start Express server first
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+
+    // Handle shutdown gracefully
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM signal received: closing HTTP server');
+      server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+      });
+    });
+
+    // Then sync database
     await sequelize.sync();
     console.log('Database synchronized');
 
-    // Start Telegram bot
+    // Finally start Telegram bot
     initBot();
+    console.log('All services initialized successfully');
 
-    // Start Express server
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
