@@ -17,11 +17,12 @@ class MessageAnalysisService {
     if (!this.apiUrl) {
       throw new Error('BOT_API_URL is not defined in environment variables');
     }
+    
   }
 
   async analyzeMessage(message: string, userId: number): Promise<AnalysisResponse> {
     try {
-
+      console.log(this.apiUrl)
       const response = await axios.post<AnalysisResponse>(`${this.apiUrl}messages/analyze`, {
         message,
         user_id: userId
