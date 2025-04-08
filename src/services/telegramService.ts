@@ -74,19 +74,6 @@ function initBot() {
     console.error('Telegram polling error:', error);
   });
 
-  // Command for starting the bot
-  bot.onText(/\/start/, async (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 
-      'Welcome to the Expense Tracker Bot!\n\n' +
-      'To add an expense, send a message in this format:\n' +
-      '[amount] [category] [description]\n\n' +
-      'For example:\n' +
-      '25.50 food Lunch at restaurant\n\n' +
-      'Use /list to see your recent expenses.'
-    );
-  });
-
   // Handle messages
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id
@@ -103,10 +90,6 @@ function initBot() {
       return;
     }
 
-    // Ignore commands
-    if (msg.text?.startsWith('/')) {
-      return
-    }
 
     try {
       const user = await findOrCreateUser(telegramId)
@@ -120,15 +103,6 @@ function initBot() {
         )
         return
       }
-
-      // Create the expense in the database
-      await Expense.create({
-        user_id: user.id,
-        amount: expense.amount,
-        category: expense.category,
-        description: expense.description,
-        added_at: new Date()
-      })
 
       bot.sendMessage(
         chatId,
