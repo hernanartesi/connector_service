@@ -22,7 +22,6 @@ class MessageAnalysisService {
   async analyzeMessage(message: string, userId: number): Promise<AnalysisResponse> {
     try {
 
-      console.log(message, userId)
       const response = await axios.post<AnalysisResponse>(`${this.apiUrl}messages/analyze`, {
         message,
         user_id: userId
