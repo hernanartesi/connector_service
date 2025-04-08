@@ -133,7 +133,11 @@ function initBot() {
     }
 
     try {
-      const user = await findOrCreateUser(telegramId)
+      const user = await findUser(telegramId)
+
+      if (!user) {
+        return
+      }
       
       // Use a time window for recent expenses
       const oneMonthAgo = new Date();
