@@ -9,13 +9,19 @@ dotenv.config();
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
+// Track application state
+let isReady = false;
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+  if (!isReady) {
+    return res.status(503).json({ status: 'Service not ready' });
+  }
+  res.status(200).json({ status: 'OK' });
 });
 
 // Routes
@@ -26,21 +32,31 @@ app.get('/', (req, res) => {
   res.send('Telegram Expense Tracker API');
 });
 
+// Keep the process alive
+process.stdin.resume();
+
+// Handle process events
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Performing graceful shutdown');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Performing graceful shutdown');
+  process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+  process.exit(1);
+});
+
 // Start the server
 async function startServer() {
   try {
     // Start Express server first
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
-    });
-
-    // Handle shutdown gracefully
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM signal received: closing HTTP server');
-      server.close(() => {
-        console.log('HTTP server closed');
-        process.exit(0);
-      });
     });
 
     // Then sync database
@@ -51,12 +67,18 @@ async function startServer() {
     initBot();
     console.log('All services initialized successfully');
 
+    // Mark application as ready
+    isReady = true;
+
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
 }
 
-startServer();
+startServer().catch((error) => {
+  console.error('Failed to start application:', error);
+  process.exit(1);
+});
 
 export default app; 
