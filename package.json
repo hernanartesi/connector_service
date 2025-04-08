@@ -1,29 +1,43 @@
 {
   "name": "telegram-api-app",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "A Telegram bot for tracking expenses using Node.js, Express, TypeScript, Sequelize and PostgreSQL",
+  "main": "dist/app.js",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "nodemon --exec ts-node src/app.ts",
+    "db:sync": "ts-node src/models/index.ts"
   },
+  "keywords": [
+    "telegram",
+    "bot",
+    "expense",
+    "tracker",
+    "nodejs",
+    "express",
+    "typescript",
+    "sequelize",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "next": "15.2.4",
-    "node-telegram-bot-api": "^0.66.0",
-    "pg": "^8.14.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-telegram-bot-api": "^0.64.0",
+    "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.35.1",
+    "axios": "^1.6.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.4",
+    "@types/node-telegram-bot-api": "^0.63.1",
+    "nodemon": "^3.0.2",
+    "sequelize-cli": "^6.6.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
   }
 }
