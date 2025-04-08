@@ -78,12 +78,16 @@ function initBot() {
       return
     }
 
+    // Skip processing if it's a command (starts with /)
+    if (msg.text?.startsWith('/')) {
+      return;
+    }
+
     // Check rate limit
     if (!checkRateLimit(telegramId)) {
       bot.sendMessage(chatId, "Please wait a moment before sending another message.");
       return;
     }
-
 
     try {
       const user = await findUser(telegramId)
