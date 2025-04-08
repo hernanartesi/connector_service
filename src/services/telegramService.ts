@@ -19,16 +19,10 @@ const RATE_LIMIT_WINDOW = 1000; // 1 second
 const MAX_MESSAGES_PER_WINDOW = 5;
 
 // Helper to find or create user based on Telegram ID
-async function findOrCreateUser(telegramId: string): Promise<User> {
-  let user = await User.findOne({
+async function findUser(telegramId: string): Promise<User | null> {
+  const user = await User.findOne({
     where: { telegram_id: telegramId },
   })
-  
-  if (!user) {
-    user = await User.create({ telegram_id: telegramId })
-    console.log('Created new user:', telegramId)
-  }
-  
   return user
 }
 
@@ -92,7 +86,12 @@ function initBot() {
 
 
     try {
-      const user = await findOrCreateUser(telegramId)
+      const user = await findUser(telegramId)
+
+      if (!user) {
+        return
+      }
+
       const expense = await parseExpenseMessage(msg.text || "", user.id)
 
       if (!expense) {
