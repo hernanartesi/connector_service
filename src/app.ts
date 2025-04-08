@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { sequelize } from './models';
 import expenseRoutes from './routes/expenseRoutes';
 import { initBot } from './services/telegramService';
+import { Server } from 'http';
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Track application state
 let isReady = false;
+let server: Server;
 
 // Middleware
 app.use(express.json());
@@ -32,49 +34,78 @@ app.get('/', (req, res) => {
   res.send('Telegram Expense Tracker API');
 });
 
-// Keep the process alive
-process.stdin.resume();
+// Graceful shutdown
+async function shutdown() {
+  console.log('Shutting down gracefully...');
+  isReady = false;
+
+  try {
+    // Close HTTP server
+    if (server) {
+      await new Promise((resolve) => {
+        server.close(() => {
+          console.log('HTTP server closed');
+          resolve(true);
+        });
+      });
+    }
+
+    // Close database connection
+    await sequelize.close();
+    console.log('Database connection closed');
+
+    console.log('Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
 
 // Handle process events
-process.on('SIGINT', () => {
-  console.log('Received SIGINT. Performing graceful shutdown');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM. Performing graceful shutdown');
-  process.exit(0);
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error);
-  process.exit(1);
+  shutdown();
 });
 
 // Start the server
 async function startServer() {
   try {
-    // Start Express server first
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+    // First test database connection
+    await sequelize.authenticate();
+    console.log('Database connection established');
 
-    // Then sync database
+    // Sync database
     await sequelize.sync();
     console.log('Database synchronized');
 
-    // Finally start Telegram bot
+    // Start Express server
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+
+    // Start Telegram bot
     initBot();
-    console.log('All services initialized successfully');
+    console.log('Telegram bot started');
 
     // Mark application as ready
     isReady = true;
+    console.log('All services initialized successfully');
 
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
 }
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown();
+});
 
 startServer().catch((error) => {
   console.error('Failed to start application:', error);
